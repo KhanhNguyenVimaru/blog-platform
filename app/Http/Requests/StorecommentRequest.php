@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StorecommentRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class StorecommentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return Auth::check();
     }
 
     /**
@@ -22,7 +23,9 @@ class StorecommentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'post_id' => 'required|exists:posts,id',
+            'comment' => 'required|max:2048',
+            'user_id' => 'required|exists:users,id'
         ];
     }
 }

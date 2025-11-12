@@ -126,7 +126,7 @@ if (loginForm) {
         e.preventDefault();
         const formData = new FormData(loginForm);
         try {
-            const response = await fetch('/handle_login', {
+            const response = await fetch('/handle_login', { // có fetch là nối thẳng tới route
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': getCsrfToken(),

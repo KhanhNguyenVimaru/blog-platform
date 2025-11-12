@@ -2,7 +2,7 @@
         $json = is_string($content) ? $content : json_encode($content);
 
     @endphp
-    <!DOCTYPE html> 
+    <!DOCTYPE html>
     <html lang="en">
 
     <head>

@@ -70,3 +70,4 @@ Route::delete('/deny-request',[FollowUserController::class, 'denyRequest'])->mid
 Route::post('/accept-request',[FollowUserController::class, 'acceptRequest'])->middleware('auth');
 Route::delete('/delete-notify',[NotifyController::class, 'deleteNotify'])->middleware('auth');
 Route::delete('/delete-ban/{id}', [UserController::class, 'deleteBan'])->middleware('auth'); // trả về số người bị cấm
+

@@ -267,8 +267,8 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    id: id,
-                    send_from_id: sendFromId
+                    followerId: sendFromId,
+                    authorId: {{ Auth::id() }}
                 })
             })
             .then(res => res.json())
@@ -287,8 +287,7 @@
                         headers: {
                             'X-Requested-With': 'XMLHttpRequest',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']')
-                                .getAttribute('content'),
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').getAttribute('content'),
                             'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({

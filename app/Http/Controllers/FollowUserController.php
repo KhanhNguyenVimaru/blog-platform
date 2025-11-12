@@ -11,73 +11,36 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Notify;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\FollowService;
+use App\Helpers\ApiResponse;
 
 class FollowUserController extends Controller
 {
-    public function banUser($id)
+    protected $followService;
+
+    public function __construct(FollowService $followService)
     {
-        DB::beginTransaction();
-
-        try {
-            $user = User::findOrFail($id);
-            $my_id = Auth::id();
-
-            $myside_relation = followUser::where(function ($q) use ($my_id, $id) {
-                $q->where('authorId', $id)
-                    ->where('followerId', $my_id);
-                })->first();
-
-            $thierside_relation = followUser::where(function ($q) use ($my_id, $id) {
-                $q->where('authorId', $my_id)
-                    ->where('followerId', $id);
-                })->first();
-
-            if ($myside_relation) {
-                $myside_relation->banned = true;
-                $myside_relation->save();
-            } else {
-                $ban = new followUser();
-                $ban->authorId = $id;
-                $ban->followerId = $my_id;
-                $ban->banned = true;
-                $ban->save();
-            }
-
-            DB::commit();
-            return redirect()->back()->with('success', 'User has been banned successfully.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'Ban user failed: ' . $e->getMessage());
-        }
+        $this->followService = $followService;
     }
 
 
-    public function acceptRequest(Request $request)
+    public function banUser($id)
     {
         try {
-            $my_id = Auth::id();
-            $send_from_id = $request->send_from_id;
-
-            // lưu request sang follow user
-            $request_accepted = new followUser();
-            $request_accepted->authorId = $my_id;
-            $request_accepted->followerId = $send_from_id;
-            $request_accepted->save();
-            // xóa request
-            // denyRequest($request);
-            $remove_request = followRequest::where('followedId', Auth::id())->where('userId_request', $send_from_id)->delete();
-
-
-            $get_accpeted = new Notify();
-            $get_accpeted->send_from_id = $my_id;
-            $get_accpeted->send_to_id = $send_from_id;
-            $get_accpeted->type = "accepted";
-            $get_accpeted->notify_content = Auth::user()->name . " has accpeted your request";
-            $get_accpeted->save();
-
-            return response()->json(['success' => true]);
+            $this->followService->banUser($id);
+            return redirect()->back()->with('success', 'User banned successfully!');
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    public function acceptRequest(StorefollowUserRequest $request)
+    {
+        try {
+            $this->followService->acceptRequest($request);
+            return ApiResponse::success(null, 'Follow request accepted successfully!');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Error: ' . $e->getMessage());
         }
     }
 

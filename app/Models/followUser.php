@@ -7,12 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class followUser extends Model
 {
+    protected $fillable = [
+        'authorId',
+        'followerId',
+        'banned',
+    ];
     public function author()
     {
         return $this->belongsTo(User::class, 'authorId');
     }
     public function follower()
-    {   
+    {
         return $this->belongsTo(User::class, 'followerId');
     }
 
