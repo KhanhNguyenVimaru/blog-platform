@@ -186,7 +186,7 @@
                                 can
                                 be followed instantly without requiring any approval.
                             </p>
-                            <span class="text-left block text-sm">Want to reset your privacy? <a href="/page_account"
+                            <span class="text-left block text-sm">Want to reset your privacy? <a href="/page-account"
                                     class="text-indigo-600 font-semibold hover:underline transition">Setting
                                     here</a></span>
                         </div>

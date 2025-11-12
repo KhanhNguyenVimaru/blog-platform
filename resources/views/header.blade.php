@@ -33,7 +33,7 @@
                     class="w-1/2 min-w-[200px] max-w-xl px-4 py-2 border border-gray-300 rounded-full shadow focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white" />
             </div>
             @if (!$user)
-                <a id="login-link" href="/page_login" class="text-sm font-semibold text-gray-600 hover:text-black">Log
+                <a id="login-link" href="/page-login" class="text-sm font-semibold text-gray-600 hover:text-black">Log
                     in<span aria-hidden="true">&rarr;</span></a>
             @else
                 <div id="account-dropdown-wrapper" class="relative">
@@ -47,7 +47,7 @@
                     <div id="account-dropdown"
                         class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50">
                         <a href="/my-profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">My Profile</a>
-                        <a href="/page_account" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Setting</a>
+                        <a href="/page-account" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Setting</a>
                         @if ($role === 'admin')
                             <a href="/admin" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Admin</a>
                         @endif

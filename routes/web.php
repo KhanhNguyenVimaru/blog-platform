@@ -16,9 +16,9 @@ use App\Http\Controllers\CommentController;
 
 // PAGE UI
 Route::get('/',[PostController::class, 'homePosts'])->name('homePosts');
-Route::get('/page_login', function () {return view('login');})->name('login');
-Route::get('/page_signup', function () {return view('signup');})->name('signup');
-Route::get('/page_account', function () {return view('account');})->name('account')->middleware('auth');
+Route::get('/page-login', function () {return view('login');})->name('login');
+Route::get('/page-signup', function () {return view('signup');})->name('signup');
+Route::get('/page-account', function () {return view('account');})->name('account')->middleware('auth');
 Route::get('/signup-success', function () { return view('signup_success'); });
 Route::get('/my-profile', [UserController::class, 'myProfile'])->name('myProfile')->middleware('auth');
 Route::get('/writing', function () { return view('writing');})->name('writing')->middleware('auth');
@@ -29,12 +29,12 @@ Route::get('/category/{id}', [PostController::class, 'categoryPage'])->name('cat
 Route::get('/notify/account-not-existed', function () {return view('notify.accountNotExisted');})->name('notify.accountNotExisted');
 Route::get('/about', function () {return view('about');})->name('about');
 // LOGIN/OUT HANDLE
-Route::post('/handle_login', [AuthController::class, 'login']);
-Route::post('/handle_signup', [AuthController::class, 'signup'])->name('register');
+Route::post('/handle-login', [AuthController::class, 'login']);
+Route::post('/handle-signup', [AuthController::class, 'signup'])->name('register');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 // API ACCOUNT
-Route::patch('/update_user/{id}', [UserController::class, 'updateUserData'])->name('updateUserData')->middleware('auth');
-Route::delete('/delete_account', [UserController::class, 'deleteUserAccount'])->name('deleteUserAccount')->middleware('auth');
+Route::patch('/update-user/{id}', [UserController::class, 'updateUserData'])->name('updateUserData')->middleware('auth');
+Route::delete('/delete-account', [UserController::class, 'deleteUserAccount'])->name('deleteUserAccount')->middleware('auth');
 Route::middleware('auth:api')->post('/change_password', [UserController::class, 'changePassword'])->name('changePassword');
 Route::post('/update-avatar', [UserController::class, 'updateAvatar'])->middleware('auth');
 Route::get('/ban-user/{id}', [FollowUserController::class, 'banUser'])->name('banUser')->middleware('auth');
@@ -61,9 +61,9 @@ Route::post('/like', [App\Http\Controllers\LikeController::class, 'like'])->name
 Route::post('/dislike', [App\Http\Controllers\LikeController::class, 'dislike'])->name('dislike')->middleware('auth');
 Route::get('/count-like/{id}', [App\Http\Controllers\LikeController::class, 'countLike'])->name('countLike');
 // FOLLOW/UNFOLLOW USER
-Route::get('/follow_user/{id}',[FollowUserController::class, 'followUser'])->name('followUser')->middleware('auth');
-Route::delete('/delete_follow/{id}', [FollowUserController::class, 'deleteFollow'])->name('deleteFollow')->middleware('auth');
-Route::delete('/revoke_follow_request/{id}', [FollowUserController::class, 'revokeFollowRequest'])->name('revokeFollowRequest');
+Route::get('/follow-user/{id}',[FollowUserController::class, 'followUser'])->name('followUser')->middleware('auth');
+Route::delete('/delete-follow/{id}', [FollowUserController::class, 'deleteFollow'])->name('deleteFollow')->middleware('auth');
+Route::delete('/revoke-follow-request/{id}', [FollowUserController::class, 'revokeFollowRequest'])->name('revokeFollowRequest');
 Route::get('/my-followers', [UserController::class, 'getFollowers'])->middleware('auth'); // trả về số người follow
 Route::get('/my-following', [UserController::class, 'getFollowing'])->middleware('auth'); // trả về số người mình đang follow
 Route::delete('/deny-request',[FollowUserController::class, 'denyRequest'])->middleware('auth');

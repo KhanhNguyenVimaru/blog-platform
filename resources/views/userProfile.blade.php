@@ -239,7 +239,7 @@
                                 accounts can
                                 be followed instantly without requiring any approval.
                             </p>
-                            <span class="text-left block text-sm">Want to reset your privacy? <a href="/page_account"
+                            <span class="text-left block text-sm">Want to reset your privacy? <a href="/page-account"
                                     class="text-indigo-600 font-semibold hover:underline transition">Setting
                                     here</a></span>
                         </div>
@@ -382,7 +382,7 @@
         if (followBtn) {
             followBtn.addEventListener('click', function() {
                 const userId = {{ $user->id }};
-                fetch(`/follow_user/${userId}`)
+                fetch(`/follow-user/${userId}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
@@ -400,7 +400,7 @@
         if (unfollowBtn) {
             unfollowBtn.addEventListener('click', function() {
                 const userId = {{ $user->id }};
-                fetch(`/delete_follow/${userId}`, {
+                fetch(`/delete-follow/${userId}`, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
@@ -425,7 +425,7 @@
         if (revokeRequestBtn) {
             revokeRequestBtn.addEventListener('click', function() {
                 const userId = {{ $user->id }};
-                fetch(`/revoke_follow_request/${userId}`, {
+                fetch(`/revoke-follow-request/${userId}`, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')

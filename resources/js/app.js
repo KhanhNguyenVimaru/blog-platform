@@ -94,7 +94,7 @@ if (signupForm) {
         const formData = new FormData(signupForm);
         if (signupSpinner) signupSpinner.style.display = 'flex';
         try {
-            const response = await fetch('/handle_signup', {
+            const response = await fetch('/handle-signup', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': getCsrfToken(),
@@ -126,7 +126,7 @@ if (loginForm) {
         e.preventDefault();
         const formData = new FormData(loginForm);
         try {
-            const response = await fetch('/handle_login', { // có fetch là nối thẳng tới route
+            const response = await fetch('/handle-login', { // có fetch là nối thẳng tới route
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': getCsrfToken(),

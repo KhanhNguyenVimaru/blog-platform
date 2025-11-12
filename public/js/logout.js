@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => {
                 if (response.ok) {
                     localStorage.clear();
-                    window.location.href = '/page_login';
+                    window.location.href = '/page-login';
                 } else {
                     alert('Logout failed.');
                 }

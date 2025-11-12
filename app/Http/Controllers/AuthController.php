@@ -88,12 +88,12 @@ class AuthController extends Controller
     {
         $user = User::where('verification_token', $token)->first();
         if (!$user) {
-            return redirect('/page_login')->with('error', 'Invalid or expired verification link.');
+            return redirect('/page-login')->with('error', 'Invalid or expired verification link.');
         }
         $user->email_verified_at = now();
         $user->verification_token = null;
         $user->save();
         $message = 'Your email has been verified successfully. You can now log in.';
-        return redirect('/page_login')->with(compact('message'));
+        return redirect('/page-login')->with(compact('message'));
     }
 }

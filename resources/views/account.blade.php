@@ -224,7 +224,7 @@
                         .then(response => {
                             if (response.ok) {
                                 localStorage.clear();
-                                window.location.href = '/page_login';
+                                window.location.href = '/page-login';
                             } else {
                                 response.json().then(data => {
                                     Swal.fire({
@@ -265,7 +265,7 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             const token = localStorage.getItem('token');
-                            fetch('/delete_account', {
+                            fetch('/delete-account', {
                                     method: 'DELETE',
                                     headers: {
                                         'Authorization': `Bearer ${token}`,
@@ -282,7 +282,7 @@
                                             'Your account has been permanently deleted.',
                                             'success'
                                         ).then(() => {
-                                            window.location.href = '/page_login';
+                                            window.location.href = '/page-login';
                                         });
                                     } else {
                                         response.json().then(data => {
@@ -334,7 +334,7 @@
                                     showConfirmButton: true
                                 }).then(() => {
                                     window.location.href =
-                                        '/page_account'; // Redirect to account page after successful change
+                                        '/page-account'; // Redirect to account page after successful change
                                 });
                             } else {
                                 response.json().then(data => {
@@ -374,7 +374,7 @@
             }).then(response => {
                 if (response.ok) {
                     localStorage.clear();
-                    window.location.href = '/page_login';
+                    window.location.href = '/page-login';
                 }
             });
         });

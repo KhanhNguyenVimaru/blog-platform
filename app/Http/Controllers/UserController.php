@@ -118,7 +118,7 @@ class UserController extends Controller
             $user->privacy = $request->privacy;
             $user->save();
 
-            return redirect('/page_account')->with('success', 'Account settings updated successfully!');
+            return redirect('/page-account')->with('success', 'Account settings updated successfully!');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => 'Failed to update account settings. Please try again.'])->withInput();
         }
