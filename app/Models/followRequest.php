@@ -9,4 +9,9 @@ class followRequest extends Model
 {
     /** @use HasFactory<\Database\Factories\FollowRequestFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'followedId',
+        'userId_request',
+    ];
 }

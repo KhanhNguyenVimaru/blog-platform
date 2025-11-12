@@ -46,115 +46,53 @@ class FollowUserController extends Controller
 
     public function denyRequest(Request $request)
     {
-        $send_from_id = $request->send_from_id;
-        $notify_id = $request->id;
         try {
-            $remove_request = followRequest::where('followedId', Auth::id())->where('userId_request', $send_from_id)->delete();
-            $remove_notify = Notify::where('id', $notify_id)->delete();
-            return response()->json(['success' => true]);
+            followRequest::where('followedId', Auth::id())->where('userId_request', $request->send_from_id)->delete();
+            Notify::where('id', $request->id)->delete(); // id này là id của notification
+            return ApiResponse::success(null, 'Follow request denied successfully!');
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            return ApiResponse::error('Error: ' . $e->getMessage());
         }
     }
 
     public function deleteFollow($id)
     {
-        $myId = Auth::user()->id;
         try {
-            $deleted = followUser::where('authorId', $id)
-                ->where('followerId', $myId)
-                ->delete();
-            if ($deleted) {
-                return response()->json(['success' => true, 'message' => 'Unfollowed successfully.']);
-            } else {
-                return response()->json(['success' => false, 'message' => 'No follow relationship found.']);
-            }
+            followUser::where('authorId', $id)->where('followerId', Auth::id())->delete(); //id này là của đối tượng bị unfollow
+            return ApiResponse::success(null, 'Unfollowed successfully!');
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            return ApiResponse::error('Error: ' . $e->getMessage());
         }
     }
 
-    public function followUser($id)
+    public function followUser($target_id) // truyền vào id của đối tượng hướng tới
     {
-        $myId = Auth::user()->id;
-        $userId = $id;
+        $exists = followUser::where('authorId', $target_id)->where('followerId', Auth::id())->exists();
+        $author_privacy = User::where('id', $target_id)->value('privacy');
 
-        // Không tự follow chính mình
-        if ($myId == $userId) {
-            return response()->json(['success' => false, 'message' => 'You cannot follow yourself.']);
+        if (Auth::id() == $target_id) {
+            return ApiResponse::error('You cannot follow yourself.', 400);
         }
 
-        // đã follow ai đó từ trước
-        $exists = \App\Models\followUser::where('authorId', $userId)
-            ->where('followerId', $myId)
-            ->exists();
         if ($exists) {
-            return response()->json(['type' => 'following', 'success' => false, 'message' => 'You are already following this user.']);
+            return ApiResponse::error('You are already following this user.', 400);
         }
 
-        $authorPrivacy = User::where('id', $id)->value('privacy');
-        if ($authorPrivacy === "private") {
-            // Kiểm tra đã gửi request chưa
-            $requestExists = followRequest::where('followedId', $userId)
-                ->where('userId_request', $myId)
-                ->exists();
-            if ($requestExists) {
-                return response()->json(['type' => 'sent_request', 'success' => false, 'message' => 'Request already sent']);
-            }
-            try {
-                $queue = new followRequest();
-                $queue->followedId = $userId;
-                $queue->userId_request = $myId;
-                $queue->save();
-
-                $notify = new Notify();
-                $notify->send_from_id = $myId;
-                $notify->send_to_id = $userId;
-                $notify->type = 'follow_request';
-                $username = User::where('id', $myId)->value('name');
-                $notify->notify_content = $username . ' has sent you a follow request';
-                $notify->save();
-
-                return response()->json(['type' => 'request', 'success' => true, 'message' => "Request has been sent"]);
-            } catch (\Exception $e) {
-                return response()->json(['type' => 'request', 'success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-            }
-        } else {
-            try {
-                $relation = new followUser;
-                $relation->authorId = $userId;
-                $relation->followerId = $myId;
-                $relation->save();
-
-                $notify = new Notify();
-                $notify->send_from_id = $myId;
-                $notify->send_to_id = $userId;
-                $notify->type = 'follow';
-                $username = User::where('id', $myId)->value('name');
-                $notify->notify_content = $username . ' is following you';
-                $notify->save();
-
-                return response()->json(['type' => 'follow', 'success' => true, 'message' => "Follow user completed!"]);
-            } catch (\Exception $e) {
-                return response()->json(['type' => 'follow', 'success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-            }
+        try{
+            $this->followService->setFollow(Auth::id(), $target_id, $author_privacy);
+            return ApiResponse::success(null, 'Follow user completed!');
+        } catch(\Exception $e){
+            return ApiResponse::error('Error: ' . $e->getMessage());
         }
     }
 
     public function revokeFollowRequest($id)
     {
-        $myId = Auth::user()->id;
         try {
-            $deleted = \App\Models\followRequest::where('followedId', $id)
-                ->where('userId_request', $myId)
-                ->delete();
-            if ($deleted) {
-                return response()->json(['success' => true, 'message' => 'Request revoked successfully.']);
-            } else {
-                return response()->json(['success' => false, 'message' => 'No follow request found.']);
-            }
+            followRequest::where('followedId', $id)->where('userId_request', Auth::id())->delete();
+            return ApiResponse::success(null, 'Follow request revoked successfully!');
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            return ApiResponse::error('Error: ' . $e->getMessage());
         }
     }
 }
