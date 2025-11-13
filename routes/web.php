@@ -13,6 +13,7 @@ use App\Http\Controllers\SearchController;
 use App\Console\Commands\DeleteExpiredAccount;
 use Illuminate\Support\Facades\Schedule;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\LikeController;
 
 // PAGE UI
 Route::get('/',[PostController::class, 'homePosts'])->name('homePosts');
@@ -57,9 +58,9 @@ Route::get('/api/category/{categoryId}/posts/{sortBy?}', [PostController::class,
 Route::post('/comments', [CommentController::class, 'store'])->name('comments.store')->middleware('auth');
 Route::delete('/comments/{id}', [CommentController::class, 'destroy'])->name('comments.destroy')->middleware('auth');
 // LIKE/DISLIKE ROUTES
-Route::post('/like', [App\Http\Controllers\LikeController::class, 'like'])->name('like')->middleware('auth');
-Route::post('/dislike', [App\Http\Controllers\LikeController::class, 'dislike'])->name('dislike')->middleware('auth');
-Route::get('/count-like/{id}', [App\Http\Controllers\LikeController::class, 'countLike'])->name('countLike');
+Route::get('/like/{postId}', [LikeController::class, 'like'])->name('like')->middleware('auth');
+Route::post('/dislike/{postId}', [LikeController::class, 'dislike'])->name('dislike')->middleware('auth');
+Route::get('/count-like/{id}', [LikeController::class, 'countLike'])->name('countLike');
 // FOLLOW/UNFOLLOW USER
 Route::get('/follow-user/{id}',[FollowUserController::class, 'followUser'])->name('followUser')->middleware('auth');
 Route::delete('/delete-follow/{id}', [FollowUserController::class, 'deleteFollow'])->name('deleteFollow')->middleware('auth');
