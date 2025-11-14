@@ -17,7 +17,6 @@ return new class extends Migration
             $table->unsignedBigInteger('authorId');
             $table->unsignedBigInteger('followerId');
             $table->boolean('banned')->nullable();
-            $table->integer('memberCount');
 
             $table->foreign('followerId')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('authorId')->references('id')->on('users')->onDelete('cascade');

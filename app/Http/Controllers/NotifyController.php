@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notify;
-use App\Http\Requests\StoreNotifyRequest;
-use App\Http\Requests\UpdateNotifyRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Helpers\ApiResponse;

@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
+            $table->string('title')->nullable();
             $table->timestamps();
             $table->unsignedBigInteger('authorId');
-            $table->text('content');
+            $table->text('content')->nullable();
             $table->string('additionFile')->nullable();
             $table->unsignedBigInteger('groupId')->nullable();
             $table->enum('status', ['private', 'public']);

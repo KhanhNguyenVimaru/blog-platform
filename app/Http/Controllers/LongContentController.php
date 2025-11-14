@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\long_content;
-use App\Http\Requests\Storelong_contentRequest;
-use App\Http\Requests\Updatelong_contentRequest;
 use Illuminate\Http\Request;
 
 class LongContentController extends Controller
@@ -28,7 +26,7 @@ class LongContentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Storelong_contentRequest $request)
+    public function store(Request $request)
     {
         //
     }
@@ -52,7 +50,7 @@ class LongContentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Updatelong_contentRequest $request, long_content $long_content)
+    public function update(Request $request, long_content $long_content)
     {
         //
     }

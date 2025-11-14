@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Helpers\ApiResponse;
 use App\Models\post;
 use App\Http\Requests\StorepostRequest;
-use App\Http\Requests\UpdatepostRequest;
 use Illuminate\Http\Request;
 use App\Models\long_content;
 use Illuminate\Support\Facades\Auth;

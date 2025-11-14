@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\followUser;
 use App\Http\Requests\StorefollowUserRequest;
-use App\Http\Requests\UpdatefollowUserRequest;
 use App\Models\User;
 use App\Models\followRequest;
 use Illuminate\Support\Facades\Auth;

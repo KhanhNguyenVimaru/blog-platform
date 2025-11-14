@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\like;
-use App\Http\Requests\StorelikeRequest;
-use App\Http\Requests\UpdatelikeRequest;
 use App\Models\post;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;

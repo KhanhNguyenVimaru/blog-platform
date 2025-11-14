@@ -3,8 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\followRequest;
-use App\Http\Requests\StorefollowRequestRequest;
-use App\Http\Requests\UpdatefollowRequestRequest;
+use Illuminate\Http\Request;
 
 class FollowRequestController extends Controller
 {
@@ -27,7 +26,7 @@ class FollowRequestController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorefollowRequestRequest $request)
+    public function store(Request $request)
     {
         //
     }
@@ -51,7 +50,7 @@ class FollowRequestController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatefollowRequestRequest $request, followRequest $followRequest)
+    public function update(Request $request, followRequest $followRequest)
     {
         //
     }

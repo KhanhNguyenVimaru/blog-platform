@@ -3,8 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\groupMember;
-use App\Http\Requests\StoregroupMemberRequest;
-use App\Http\Requests\UpdategroupMemberRequest;
+use Illuminate\Http\Request;
 
 class GroupMemberController extends Controller
 {
@@ -27,7 +26,7 @@ class GroupMemberController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoregroupMemberRequest $request)
+    public function store(Request $request)
     {
         //
     }
@@ -51,7 +50,7 @@ class GroupMemberController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdategroupMemberRequest $request, groupMember $groupMember)
+    public function update(Request $request, groupMember $groupMember)
     {
         //
     }

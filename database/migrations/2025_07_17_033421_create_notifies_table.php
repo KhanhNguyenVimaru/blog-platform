@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger("send_to_id")->nullable();
             $table->string('type');
             $table->string('notify_content');
+            $table->string('addition')->nullable();
             $table->timestamps();
         });
     }
