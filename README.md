@@ -17,10 +17,80 @@ Built with **Laravel** for the backend, **Tailwind CSS** for the UI, **MySQL** f
 - Node.js & npm (for asset building)
 
 ## Local Setup
-For a fully detailed walkthrough see `docs/setup.txt`. The short version:
-1. Clone the repo and install dependencies (`composer install`, `npm install`).
-2. Copy `.env.example` to `.env`, configure database/mail credentials, then run `php artisan key:generate`.
-3. Create the database, run `php artisan migrate --seed` (or the seeders you need), and install Passport with `php artisan passport:client --personal`.
-4. Build assets via `npm run build` (or `npm run dev` for hot reload), link storage (`php artisan storage:link`), and start the server with `php artisan serve`.
+Digital Blog - Local Setup
+==========================
 
-If you get stuck, the setup doc includes troubleshooting notes plus queue/scheduler commands.
+Prerequisites
+-------------
+- PHP 8.2+, Composer 2
+- MySQL 8 (or MariaDB equivalent)
+- Node.js 18+ and npm
+- Git and a working queue/cron solution (Supervisor, systemd) if you plan to run queues
+
+1. Clone the repository
+-----------------------
+```bash
+git clone https://github.com/KhanhNguyenVimaru/blog-platform.git
+cd blog-platform
+```
+
+2. Install PHP dependencies
+---------------------------
+```bash
+composer install
+```
+
+3. Configure the environment
+----------------------------
+- Duplicate `.env.example` to `.env`.
+- Set `APP_URL`, mail credentials, database name/user/password and any third-party keys.
+- Generate the app key:
+  ```bash
+  php artisan key:generate
+  ```
+
+4. Prepare the database
+-----------------------
+- Ensure the database configured in `.env` exists.
+- Run the migrations (fresh install):
+  ```bash
+  php artisan migrate
+  ```
+- Seed base data if needed (example):
+  ```bash
+  php artisan db:seed
+  ```
+
+5. Configure Laravel Passport
+-----------------------------
+```bash
+php artisan passport:client --personal
+```
+Save the generated client ID/secret for API requests.
+
+6. Build frontend assets
+------------------------
+```bash
+npm install
+npm run build   # or "npm run dev" when developing
+```
+
+7. Link storage (one time)
+--------------------------
+```bash
+php artisan storage:link
+```
+
+8. Serve the application
+------------------------
+```bash
+php artisan serve
+```
+or configure your preferred web server (Nginx/Apache) to point to `public/`.
+
+9. Optional services
+--------------------
+- Start the queue worker: `php artisan queue:work`.
+- Schedule cron entry: `* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1`.
+
+You now have a fully working local Digital Blog environment. Refer to the README for troubleshooting tips and additional context.
