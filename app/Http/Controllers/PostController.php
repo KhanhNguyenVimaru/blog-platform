@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
 use App\Models\post;
 use App\Http\Requests\StorepostRequest;
 use App\Http\Requests\UpdatepostRequest;
@@ -20,12 +21,23 @@ use App\Models\category;
 use App\Models\followUser;
 use App\Models\User;
 use App\Models\Notify;
+use App\Http\Requests\StoreFileRequest;
+use App\Services\HandlePostService;
+use Symfony\Component\HttpKernel\HttpCache\Store;
 
 class PostController extends Controller
 {
+    protected $handlePostService;
+
+    public function __construct()
+    {
+        $this->handlePostService = new HandlePostService();
+    }
+
     public function categoryPosts($categoryId, $sortBy = 'latest')
     {
         $category = Category::findOrFail($categoryId);
+
         if (Auth::check()) {
             $query = Post::with(['category', 'author'])
                 ->withCount(['likes', 'comment'])
@@ -99,6 +111,7 @@ class PostController extends Controller
             'posts' => $posts
         ]);
     }
+
     public function categoryPage($id)
     {
         $pageId = $id;
@@ -308,170 +321,60 @@ class PostController extends Controller
 
     public function updateStatus($id)
     {
-        $post = post::findOrFail($id);
-        if ($post->authorId !== Auth::id()) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        try {
+            $this->handlePostService->changeStatus($id);
+            return ApiResponse::success(null, 'Update post status successfully!');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Error: ' . $e->getMessage());
         }
-
-        $post->status = $post->status === 'public' ? 'private' : 'public';
-        $post->save();
-
-        return response()->json(['success' => true, 'message' => 'Post status updated successfully', 'status' => $post->status]);
     }
-    /**
-     * Display a listing of the resource.
-     */
+
     public function deletePost($id)
     {
-        $post = post::findOrFail($id);
-        if ($post->authorId !== Auth::id()) {
-            return response()->json(['error' => 'Unauthorized']);
-        }
-        DB::beginTransaction();
         try {
-            // Xóa nội dung dài nếu có
-            if ($post->long_content()->exists()) {
-                $post->long_content()->delete();
-            }
-            // Xóa bài viết
-            $post->delete();
-            DB::commit();
-            return response()->json(['success' => true, 'message' => 'Post deleted successfully']);
+            post::destroy($id);
+            return ApiResponse::success(null, 'Delete post successfully!');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => 'Failed to delete post', 'message' => $e->getMessage()]);
+            return ApiResponse::error('Error: ' . $e->getMessage());
         }
     }
 
-    public function uploadFile(Request $request)
+    public function uploadFile(StoreFileRequest $request)
     {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048' // Chỉ cho phép ảnh, tối đa 2MB
-        ]);
-
         $file = $request->file('image');
         $path = $file->store('uploads', 'public');
-        return response()->json([
-            'success' => 1,
-            'file' => [
-                'url' => Storage::url($path)
-            ]
-        ], 200);
+        return response()->json(['success' => true, 'file' => ['url' => Storage::url($path)]]);
     }
 
-    public function storeContent(Request $request)
+    public function storeContent(StorepostRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'status' => 'required|in:public,private',
-            'categoryId' => 'nullable|exists:categories,id',
-            'groupId' => 'nullable|exists:groups,id',
-            'content' => 'required|string',
-            'coverImage' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Chỉ cho phép ảnh, tối đa 2MB
-        ]);
-        $exists = post::where('title', $validated['title'])
-            ->where('authorId', Auth::id())
-            ->exists();
-
-        if ($exists) {
-            return response()->json(['error' => 'Post with this title already exists']);
-        }
-
-        $userId = Auth::id();
-        $content = $request->input('content');
-
-        // Tính byte size của content (EditorJS JSON dạng string)
-        $contentSize = strlen($content);
-
-        DB::beginTransaction();
-
         try {
-            // Lưu ảnh đại diện nếu có
-            if ($request->hasFile('coverImage')) {
-                $file = $request->file('coverImage');
-                $path = $file->store('uploads', 'public');
-                $validated['additionFile'] = Storage::url($path); // Lưu đường dẫn vào additionFile
-            }
-
-            $post = new Post();
-            $post->title = $validated['title'];
-            $post->status = $validated['status'];
-            $post->categoryId = $validated['categoryId'] ?? null;
-            $post->groupId = $validated['groupId'] ?? null;
-            $post->authorId = $userId;
-            $post->additionFile = $validated['additionFile'] ?? null; // additionFile là ảnh đại diện
-
-            // Nếu content <= 65535 bytes ➝ lưu vào posts.content
-            if ($contentSize <= 65535) {
-                $post->content = $content;
-            }
-
-            $post->save();
-
-            // Nếu content lớn ➝ lưu vào bảng phụ long_contents
-            if ($contentSize > 65535) {
-                long_content::create([
-                    'postId' => $post->id,
-                    'content' => $content,
-                ]);
-            }
-
-            DB::commit();
-            $username = User::where('id', $userId)->value('name');
-
-            if ($post) {
-                // Tạo thông báo cho người theo dõi
-                $followers = Auth::user()->followers; // Collection User theo dõi mình
-
-
-                foreach ($followers as $follower) {
-                    Notify::create([
-                        'send_from_id' => $userId,
-                        'send_to_id' => $follower->id,
-                        'type' => 'new_post',
-                        'notify_content' => $username . " has created a new post",
-                        'addition' => $post->id
-                    ]);
-                }
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Post created successfully',
-                'postId' => $post->id,
-                'check_follower' => $followers,
-                // 'check_notify' => $notify,
-            ], 201);
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to create post',
-                'message' => $e->getMessage()
-            ], 500);
+            $newpost = $this->handlePostService->createNewPost($request->validated(), $request);
+            $this->handlePostService->notifyNewPost($newpost);
+            return ApiResponse::success(['postId' => $newpost->id], 'Post created successfully');
+        } catch (\Exception $e) {
+            return ApiResponse::error('Error: ' . $e->getMessage());
         }
     }
 
-    public function contentOfUsers(Request $request)
+    public function contentOfUsers()
     {
-        $userId = Auth::id();
-        $posts = post::where('authorId', $userId)
-            ->with(['category', 'long_content'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json($posts);
+        try {
+            $posts = post::authorPosts(Auth::id(), true);
+            return ApiResponse::success($posts, 'Author posts retrieved successfully');
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 404);
+        }
     }
 
-    public function contentOfAuthor($id)
+    public function contentOfAuthor($id) // truyền vào id của author
     {
-        $posts = post::where('authorId', $id)
-            ->where('status', 'public') // Chỉ lấy bài viết công kha
-            ->with(['category', 'long_content'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json($posts);
+        try {
+            $posts = post::authorPosts($id);
+            return ApiResponse::success($posts, 'Author posts retrieved successfully');
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 404);
+        }
     }
 
     /**
@@ -481,8 +384,7 @@ class PostController extends Controller
     {
         $post = post::with('category', 'author')->findOrFail($id);
 
-        // Lấy comments của post này, sắp xếp theo thời gian mới nhất
-        $comments = \App\Models\Comment::with('user')
+        $comments = Comment::with('user')
             ->where('post_id', $id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -513,8 +415,8 @@ class PostController extends Controller
             'author_avatar' => $post->author && $post->author->avatar ? $post->author->avatar : 'https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg',
             'author_name' => $post->author ? $post->author->name : 'Unknown',
             'created_at' => $post->created_at->format('Y-m-d') ? $post->created_at->format('Y-m-d') : 'Unknown',
-            'comments' => $comments, // Thêm comments vào view
-            'post_id' => $id, // Thêm post_id để sử dụng trong form comment
+            'comments' => $comments,
+            'post_id' => $id,
             'countlike' => $countlike,
             'countdislike' => $countdislike,
             'checkliked' => $checkliked,

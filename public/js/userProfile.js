@@ -178,7 +178,11 @@ const loadAuthorPosts = (userId) => {
         }
     })
         .then((response) => response.json())
-        .then((posts) => {
+        .then((payload) => {
+            if (payload && payload.success === false) {
+                throw new Error(payload.message || 'Failed to load author posts');
+            }
+            const posts = Array.isArray(payload?.data) ? payload.data : [];
             const postsCountEls = document.querySelectorAll('.js-posts-count');
             postsCountEls.forEach((element) => {
                 element.textContent = posts.length;
@@ -211,6 +215,13 @@ const loadAuthorPosts = (userId) => {
                 `;
                 postsList.appendChild(postDiv);
             });
+        })
+        .catch((error) => {
+            console.error('Failed to load author posts:', error);
+            const postsList = document.getElementById('posts-row-all');
+            if (postsList) {
+                postsList.innerHTML = '<div class="text-red-500">Failed to load posts.</div>';
+            }
         });
 };
 

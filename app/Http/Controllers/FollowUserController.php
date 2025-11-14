@@ -23,7 +23,6 @@ class FollowUserController extends Controller
         $this->followService = $followService;
     }
 
-
     public function banUser($id)
     {
         try {

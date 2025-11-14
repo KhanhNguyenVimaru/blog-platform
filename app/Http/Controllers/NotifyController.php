@@ -7,6 +7,7 @@ use App\Http\Requests\StoreNotifyRequest;
 use App\Http\Requests\UpdateNotifyRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Helpers\ApiResponse;
 
 class NotifyController extends Controller
 
@@ -14,17 +15,20 @@ class NotifyController extends Controller
     public function deleteNotify(Request $request)
     {
         try {
-            $deleteNotify = Notify::where('id', $request->id)->delete();
-            return response()->json(['success' => true]);
+            Notify::where('id', $request->id)->delete();
+            return ApiResponse::success(null, 'Delete notify successfully!');
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            return ApiResponse::error('Error: ' . $e->getMessage());
         }
     }
 
     public function loadUserNotify()
     {
-        $notifies = Notify::where('send_to_id', Auth::id())
-            ->orderBy('created_at', 'desc')->limit(6)->get();
-            return response()->json($notifies);
+        try{
+            $notifies = Notify::where('send_to_id', Auth::id())->orderBy('created_at', 'desc')->limit(6)->get();
+            return ApiResponse::success($notifies, 'Load notify successfully!');
+        } catch(\Exception $e){
+            return ApiResponse::error('Error: ' . $e->getMessage());
+        }
     }
 }

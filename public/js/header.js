@@ -99,7 +99,8 @@
                         }
                     })
                         .then((response) => response.json())
-                        .then((notifies) => {
+                        .then((result) => {
+                            const notifies = Array.isArray(result.data) ? result.data : [];
                             let html = '<div class="font-semibold text-gray-700 mb-2">Notifications</div>';
                             if (!notifies.length) {
                                 html += '<div class="text-gray-500 text-sm">No notifications yet.</div>';
