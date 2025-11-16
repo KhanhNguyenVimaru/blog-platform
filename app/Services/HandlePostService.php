@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\post;
 use App\Models\long_content;
 use App\Models\Notify;
-use App\Helpers\ApiResponse;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
@@ -82,5 +82,24 @@ class HandlePostService
                 'addition' => $post->id,
             ]);
         }
+    }
+
+    public static function addPostPreview($posts)
+    {
+        $posts->getCollection()->transform(function ($post) {
+            $preview = '';
+            $contentArr = json_decode($post->content, true);
+
+            if (isset($contentArr['blocks'])) {
+                foreach ($contentArr['blocks'] as $block) {
+                    if (isset($block['data']['text'])) {
+                        $preview .= strip_tags($block['data']['text']) . ' ';
+                    }
+                }
+            }
+
+            $post->preview = Str::limit(trim($preview), 180);
+            return $post;
+        });
     }
 }

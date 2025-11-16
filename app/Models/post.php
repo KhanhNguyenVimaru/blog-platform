@@ -9,6 +9,7 @@ use App\Models\Comment;
 use App\Models\like;
 use App\Models\category;
 use App\Models\long_content;
+use Illuminate\Support\Str;
 
 class post extends Model
 {
@@ -45,17 +46,21 @@ class post extends Model
     {
         return $this->belongsTo(User::class, 'authorId');
     }
-    public function comment(){
+    public function comment()
+    {
         return $this->hasMany(Comment::class, 'post_id');
     }
-    public function likes(){
+    public function likes()
+    {
         return $this->hasMany(like::class, 'post_id');
     }
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class, 'authorId');
     }
 
-    public static function authorPosts($author_id, $includePrivate = false){
+    public static function authorPosts($author_id, $includePrivate = false)
+    {
         $query = post::where('authorId', $author_id)
             ->with(['category', 'long_content'])
             ->orderBy('created_at', 'desc');
@@ -64,5 +69,53 @@ class post extends Model
             $query->where('status', 'public');
         }
         return $query->get();
+    }
+
+    public static function defaultPostQuery($categoryId = null)
+    {
+        $posts = post::with(['category', 'author'])
+            ->withCount(['likes', 'comment'])
+            ->where('status', 'public')
+            ->whereHas('author', function ($query) {
+                $query->where('privacy', 'public');
+            });
+
+        if (!is_null($categoryId)) {
+            $posts->where('categoryId', $categoryId);
+        }
+        return $posts;
+    }
+
+    public static function applyBanFilter($query, $userId)
+    {
+        return $query->where(function ($sub) use ($userId) {
+            $sub->where(function ($banCheck) use ($userId) {
+                $banCheck->whereDoesntHave('author.followers', function ($q) use ($userId) {
+                    $q->where('followerId', $userId)
+                        ->where('banned', true);
+                })
+                    ->whereDoesntHave('author.following', function ($q) use ($userId) {
+                        $q->where('authorId', $userId)
+                            ->where('banned', true);
+                    });
+            })
+                ->orWhere('authorId', $userId);
+        });
+    }
+
+    public static function applySorting($query, $sortBy)
+    {
+        switch ($sortBy) {
+            case 'popular':
+                $query->orderByDesc('likes_count');
+                break;
+            case 'interaction':
+                $query->orderByDesc('comment_count');
+                break;
+            default:
+                $query->orderByDesc('created_at');
+                break;
+        }
+        return $query;
     }
 }

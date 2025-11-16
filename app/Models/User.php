@@ -13,7 +13,9 @@ use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\post;
+use App\Models\like;
 use App\Models\followUser;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -95,6 +97,21 @@ class User extends Authenticatable
             'authorId',   // FK trong pivot trỏ tới user hiện tại
             'followerId'    // FK trong pivot trỏ tới user follower
         );
+    }
+
+    public static function hasMostLikes()
+    {
+        return User::select('users.*')
+            ->addSelect([
+                'likes_count' => DB::table('likes')
+                    ->join('posts', 'posts.id', '=', 'likes.post_id')
+                    ->whereColumn('posts.authorId', 'users.id')
+                    ->selectRaw('COUNT(*)')
+            ])
+            ->having('likes_count', '>', 0)
+            ->orderByDesc('likes_count')
+            ->limit(3)
+            ->get();
     }
 }
 

@@ -23,6 +23,19 @@
 
 <body>
     @include('header')
+
+    @php
+        $firstPost = $allCategoryPosts->first();
+        $activeFilter = $sortBy ?? 'latest';
+        $baseCategoryUrl = route('categoryPage', ['id' => $category->id]);
+        $filterUrl = function (string $filter) use ($baseCategoryUrl) {
+            if ($filter === 'latest') {
+                return $baseCategoryUrl;
+            }
+            return $baseCategoryUrl . '?filter=' . $filter;
+        };
+    @endphp
+
     <div class="relative w-full h-50 md:h-96 flex items-start justify-center"
         style="background-color: rgb(234, 234, 234);">
         <div class="flex items-center mt-28">
@@ -40,21 +53,101 @@
         <div class="max-w-screen-xl mx-auto h-full pb-5">
             <!-- Navigation -->
             <div class="flex justify-start mb-4 gap-8 text-center pl-4" id="nav-links">
-                <a data-filter="latest" class="filter-link text-base text-black px-4 cursor-pointer"
-                    aria-current="true">LATEST</a>
-                <a data-filter="popular"
-                    class="filter-link text-base text-gray-500 hover:text-black px-4 cursor-pointer"
-                    aria-current="false">MOST POPULAR</a>
-                <a data-filter="interaction"
-                    class="filter-link text-base text-gray-500 hover:text-black px-4 cursor-pointer"
-                    aria-current="false">TOP INTERACTION</a>
+                <a href="{{ $filterUrl('latest') }}" data-filter="latest"
+                    class="filter-link text-base {{ $activeFilter === 'latest' ? 'text-black' : 'text-gray-500 hover:text-black' }} px-4 cursor-pointer"
+                    aria-current="{{ $activeFilter === 'latest' ? 'true' : 'false' }}">LATEST</a>
+                <a href="{{ $filterUrl('popular') }}" data-filter="popular"
+                    class="filter-link text-base {{ $activeFilter === 'popular' ? 'text-black' : 'text-gray-500 hover:text-black' }} px-4 cursor-pointer"
+                    aria-current="{{ $activeFilter === 'popular' ? 'true' : 'false' }}">MOST POPULAR</a>
+                <a href="{{ $filterUrl('interaction') }}" data-filter="interaction"
+                    class="filter-link text-base {{ $activeFilter === 'interaction' ? 'text-black' : 'text-gray-500 hover:text-black' }} px-4 cursor-pointer"
+                    aria-current="{{ $activeFilter === 'interaction' ? 'true' : 'false' }}">TOP INTERACTION</a>
             </div>
 
             <!-- Main Content Grid -->
             <div class="grid grid-cols-12 gap-6 h-full mb-10">
                 <!-- Main Column 9/12 -->
                 <div class="col-span-9 p-4" id="show-all-posts">
-                    <!-- Posts will be loaded here via AJAX -->
+                    @forelse ($allCategoryPosts as $post)
+                        <div
+                            class="bg-white rounded-lg shadow p-4 pr-6 flex flex-row gap-6 items-center mb-4 hover:shadow-lg transition min-h-[120px]">
+                            <img src="{{ $post->additionFile ?? '/images/free-images-for-blog.png' }}" alt="Post Image"
+                                class="w-32 h-32 object-cover rounded-md bg-gray-100 flex-shrink-0"
+                                onerror="this.src='/images/free-images-for-blog.png'">
+                            <div class="flex flex-col flex-1 min-w-0">
+                                <a href="{{ url('/post-content-viewer/' . $post->id) }}"
+                                    class="font-bold text-base text-black cursor-pointer hover:text-blue-600 hover:underline line-clamp-1"
+                                    style="text-decoration: none; font-size:18px">
+                                    {{ $post->title ?? 'Untitled Post' }}
+                                </a>
+                                <div class="text-gray-600 text-sm my-2">
+                                    {{ $post->preview ?? 'No preview available' }}
+                                </div>
+                                <div class="flex items-center justify-between mt-1 w-full">
+                                    @if ($post->author)
+                                        <a href="{{ url('/user-profile/' . $post->author->id) }}"
+                                            class="text-sm text-gray-700 font-medium hover:text-blue-600 cursor-pointer">
+                                            {{ $post->author->name }}
+                                        </a>
+                                    @else
+                                        <span class="text-sm text-gray-500 font-medium">Unknown Author</span>
+                                    @endif
+                                    <div class="flex items-center gap-2">
+                                        <span
+                                            class="inline-block truncate px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold cursor-pointer">
+                                            {{ optional($post->category)->content ?? 'No category' }}
+                                        </span>
+                                        <span class="text-xs text-gray-400">
+                                            {{ optional($post->created_at)->format('d/m/Y H:i') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-gray-500">No posts yet.</div>
+                    @endforelse
+
+                    @if ($allCategoryPosts->hasPages())
+                        <div class="flex justify-center mt-6">
+                            <nav aria-label="Page navigation">
+                                <ul class="inline-flex items-center -space-x-px">
+                                    @if ($allCategoryPosts->onFirstPage())
+                                        <li>
+                                            <span
+                                                class="px-3 py-2 leading-tight text-gray-400 bg-gray-100 border border-gray-300 cursor-not-allowed">Previous</span>
+                                        </li>
+                                    @else
+                                        <li>
+                                            <a href="{{ $allCategoryPosts->previousPageUrl() }}"
+                                                class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700">Previous</a>
+                                        </li>
+                                    @endif
+
+                                    @foreach ($allCategoryPosts->getUrlRange(1, $allCategoryPosts->lastPage()) as $page => $url)
+                                        <li>
+                                            <a href="{{ $url }}"
+                                                class="px-3 py-2 leading-tight {{ $page == $allCategoryPosts->currentPage() ? 'text-blue-600 bg-blue-50 border-blue-300' : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700' }} border">
+                                                {{ $page }}
+                                            </a>
+                                        </li>
+                                    @endforeach
+
+                                    @if ($allCategoryPosts->hasMorePages())
+                                        <li>
+                                            <a href="{{ $allCategoryPosts->nextPageUrl() }}"
+                                                class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700">Next</a>
+                                        </li>
+                                    @else
+                                        <li>
+                                            <span
+                                                class="px-3 py-2 leading-tight text-gray-400 bg-gray-100 border border-gray-300 cursor-not-allowed">Next</span>
+                                        </li>
+                                    @endif
+                                </ul>
+                            </nav>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Sidebar Column 3/12 -->
@@ -150,168 +243,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 
     @include('footer')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get category ID from the page (assuming it's available via Blade)
-            const baseId = @json($pageId);
-            console.log(baseId);
-            const categoryId = {{ $category->id ?? 'null' }};
-
-            // Function to fetch and display posts
-            function loadPosts(sortBy = 'latest', page = 1) {
-                const postsContainer = document.getElementById('show-all-posts');
-                postsContainer.innerHTML = '<div class="text-gray-500">Loading...</div>';
-
-                fetch(`/api/category/${baseId}/posts/${sortBy}?show-page=${page}`, {
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                            'Accept': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        postsContainer.innerHTML = ''; // Clear loading message
-                        if (data.success) {
-                            // Render posts
-                            if (data.posts.data.length > 0) {
-                                data.posts.data.forEach(post => {
-                                    const postHtml = `
-                                    <div class="bg-white rounded-lg shadow p-4 pr-6 flex flex-row gap-6 items-center mb-4 hover:shadow-lg transition min-h-[120px]">
-                                        <img src="${post.additionFile || '/images/free-images-for-blog.png'}"
-                                            alt="Post Image"
-                                            class="w-32 h-32 object-cover rounded-md bg-gray-100 flex-shrink-0"
-                                            onerror="this.src='/images/free-images-for-blog.png'">
-                                        <div class="flex flex-col flex-1 min-w-0">
-                                            <a href="/post-content-viewer/${post.id}"
-                                                class="font-bold text-base text-black cursor-pointer hover:text-blue-600 hover:underline line-clamp-1"
-                                                style="text-decoration: none; font-size:18px">
-                                                ${post.title || 'Untitled Post'}
-                                            </a>
-                                            <div class="text-gray-600 text-sm my-2">
-                                                ${post.preview || 'No preview available'}
-                                            </div>
-                                            <div class="flex items-center justify-between mt-1 w-full">
-                                                <a href="/user-profile/${post.author.id}"
-                                                    class="text-sm text-gray-700 font-medium hover:text-blue-600 cursor-pointer">
-                                                    ${post.author.name || 'Unknown Author'}
-                                                </a>
-                                                <div class="flex items-center gap-2">
-                                                    <span class="inline-block truncate px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold cursor-pointer">
-                                                        ${post.category?.content || 'No category'}
-                                                    </span>
-                                                    <span class="text-xs text-gray-400">
-                                                        ${new Date(post.created_at).toLocaleString('en-GB', {
-                                                            day: '2-digit',
-                                                            month: '2-digit',
-                                                            year: 'numeric',
-                                                            hour: '2-digit',
-                                                            minute: '2-digit'
-                                                        })}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
-                                    postsContainer.insertAdjacentHTML('beforeend', postHtml);
-                                });
-
-                                // Render pagination
-                                postsContainer.insertAdjacentHTML('beforeend', renderPagination(data.posts,
-                                    sortBy));
-                            } else {
-                                postsContainer.innerHTML = '<div class="text-gray-500">No posts yet.</div>';
-                            }
-                        } else {
-                            console.error('Failed to load posts:', data.message);
-                            postsContainer.innerHTML = '<div class="text-gray-500">Error loading posts.</div>';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching posts:', error);
-                        postsContainer.innerHTML = '<div class="text-gray-500">Error loading posts.</div>';
-                    });
-            }
-
-            // Function to render pagination links
-            function renderPagination(posts, sortBy) {
-                let links = `
-                <div class="flex justify-center mt-6">
-                    <nav aria-label="Page navigation">
-                        <ul class="inline-flex items-center -space-x-px">
-            `;
-
-                // Previous button
-                if (posts.prev_page_url) {
-                    links += `
-                    <li>
-                        <a href="#" class="page-link px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700" data-page="${posts.current_page - 1}">
-                            Previous
-                        </a>
-                    </li>
-                `;
-                }
-
-                // Page numbers
-                for (let i = 1; i <= posts.last_page; i++) {
-                    links += `
-                    <li>
-                        <a href="#" class="page-link px-3 py-2 leading-tight ${i === posts.current_page ? 'text-blue-600 bg-blue-50 border-blue-300' : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-100 hover:text-gray-700'} border" data-page="${i}">
-                            ${i}
-                        </a>
-                    </li>
-                `;
-                }
-
-                // Next button
-                if (posts.next_page_url) {
-                    links += `
-                    <li>
-                        <a href="#" class="page-link px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700" data-page="${posts.current_page + 1}">
-                            Next
-                        </a>
-                    </li>
-                `;
-                }
-
-                links += `
-                        </ul>
-                    </nav>
-                </div>
-            `;
-                return links;
-            }
-
-            // Handle filter link clicks
-            document.querySelectorAll('.filter-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const sortBy = this.getAttribute('data-filter');
-                    document.querySelectorAll('.filter-link').forEach(l => {
-                        l.classList.remove('text-black');
-                        l.setAttribute('aria-current', 'false');
-                    });
-                    this.classList.add('text-black');
-                    this.setAttribute('aria-current', 'true');
-                    loadPosts(sortBy);
-                });
-            });
-
-            // Handle pagination link clicks
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('page-link')) {
-                    e.preventDefault();
-                    const page = e.target.getAttribute('data-page');
-                    const activeFilter = document.querySelector('.filter-link.text-black')?.getAttribute(
-                        'data-filter') || 'latest';
-                    loadPosts(activeFilter, page);
-                }
-            });
-
-            // Load initial posts
-            loadPosts();
-        });
-    </script>
 </body>
 
 </html>

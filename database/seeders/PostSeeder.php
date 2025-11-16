@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
+use App\Models\category;
+use App\Models\post;
 use Illuminate\Database\Seeder;
 
 class PostSeeder extends Seeder
@@ -12,6 +14,16 @@ class PostSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        if (User::count() === 0) {
+            User::factory()->count(25)->create();
+        }
+
+        if (category::count() === 0) {
+            $this->call(CategorySeeder::class);
+        }
+
+        post::factory()
+            ->count(60)
+            ->create();
     }
 }

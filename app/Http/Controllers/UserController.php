@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -126,17 +127,10 @@ class UserController extends Controller
     public function deleteBan($id)
     {
         try {
-            $myId = Auth::user()->id;
-            $deleted = followUser::where('authorId', $id)
-                ->where('followerId', $myId)
-                ->delete();
-            if ($deleted) {
-                return response()->json(['success' => true, 'message' => 'Unblocked successfully.']);
-            } else {
-                return response()->json(['success' => false, 'message' => 'No ban relationship found.']);
-            }
+            $deleted = followUser::where('authorId', $id)->where('followerId', Auth::id())->delete();
+            return ApiResponse::success('Unbanned successfully', ['deleted' => $deleted]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+            return ApiResponse::error('Error unbanning user: ' . $e->getMessage());
         }
     }
 
@@ -148,18 +142,10 @@ class UserController extends Controller
             if ($user->avatar_path && Storage::disk('public')->exists($user->avatar_path)) {
                 Storage::disk('public')->delete($user->avatar_path);
             }
-
-            $user->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Account deleted successfully'
-            ], 200);
+            User::where('id', $user->id)->delete();
+            return ApiResponse::success('Account deleted successfully');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error deleting account: ' . $e->getMessage()
-            ], 500);
+            return ApiResponse::error('Error deleting account: ' . $e->getMessage());
         }
     }
 
