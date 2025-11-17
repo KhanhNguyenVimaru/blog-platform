@@ -2,26 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\SignupRequest;
+use App\Mail\VerifySignUpMail;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\VerifySignUpMail;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 
 class AuthController extends Controller
 {
-    public function signup(Request $request)
+    public function signup(SignupRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|max:255|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-
         // Generate verification token
         $verification_token = Str::random(60);
 
@@ -44,15 +39,11 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
         $user = User::withTrashed()->where('email', $request->email)->first();
         if (!$user) {
-            return response()->json(['error' => 'Your account does not exist']);
+            return response()->json(['error' => 'Invalid Password or Email'], 404);
         } else if ($user->trashed()) {
             $user->restore();
         }
@@ -60,7 +51,7 @@ class AuthController extends Controller
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
             $user = Auth::user();
             if (is_null($user->email_verified_at)) {
-                return response()->json(['error' => 'Please verify your email before logging in.']);
+                return response()->json(['error' => 'Please verify your email before logging in.'], 403);
             }
             $token = $user->createToken('myApp')->accessToken;
             return response()->json([

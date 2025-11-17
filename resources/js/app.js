@@ -136,11 +136,15 @@ if (loginForm) {
             });
             const data = await response.json();
             if (response.ok) {
-                localStorage.setItem('token', data.access_token);
-                localStorage.setItem('user', data.user);
-                Swal.fire({ icon: 'success', title: 'Login successful!', text: 'Welcome back ' + data.user }).then(() => {
-                    window.location.href = '/';
-                });
+                if (data.access_token) {
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('user', data.user);
+                    Swal.fire({ icon: 'success', title: 'Login successful!', text: 'Welcome back ' + data.user }).then(() => {
+                        window.location.href = '/';
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Email or Password is incorrect' });
+                }
             } else {
                 let msg = data.message || data.error || 'Login failed';
                 Swal.fire({ icon: 'error', title: 'Error', text: msg });
