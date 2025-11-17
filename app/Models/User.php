@@ -113,6 +113,13 @@ class User extends Authenticatable
             ->limit(3)
             ->get();
     }
+
+    public static function searchSuggest($query)
+    {
+        return User::where('name', 'like', "%$query%")
+            ->orWhere('email', 'like', "%$query%")
+            ->get();
+    }
 }
 
 

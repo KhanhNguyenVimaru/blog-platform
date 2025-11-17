@@ -118,4 +118,15 @@ class post extends Model
         }
         return $query;
     }
+
+    public static function searchSuggest($query){
+        return post::with('author')
+            ->where('title', 'like', "%$query%")
+            ->where('status', 'public')
+            ->whereHas('author', function ($q) {
+                $q->where('privacy', 'public');
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
 }

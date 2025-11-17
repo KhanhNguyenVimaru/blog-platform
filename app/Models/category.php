@@ -13,4 +13,8 @@ class category extends Model
     public function posts(){
         return $this->hasMany(\App\Models\Post::class, 'categoryId');
     }
+
+    public static function searchSuggest($query){
+        return category::where('content', 'like', "%$query%")->get();
+    }
 }
